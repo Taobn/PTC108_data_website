@@ -1,0 +1,11 @@
+--active virual enviromment
+venv\Scripts\activate
+--create requirements.txt
+pip freeze > requirements.txt
+--download by requirements.txt
+pip download -r requirements.txt -d packages
+--install by requirements.txt
+pip install --no-index --find-links=packages -r requirements.txt
+--collect static files
+python manage.py collectstatic
+

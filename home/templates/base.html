@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   {% load static %}
+   <link rel="icon" href="{% static 'icons/favicon.ico' %}" type="image/x-icon">
+   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css">
+   <link href="{% static 'css/css2.css' %}" rel="stylesheet">
+   <link rel="stylesheet" href="{% static 'fonts/font-awesome.min.css' %}">
+   <!-- Thêm vào phần <head> -->
+    <link href="{% static 'css/select2.min.css' %}" rel="stylesheet" />
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script src="{% static 'js/xlsx.full.min.js' %}"></script> <!-- Thư viện xuất Excel -->
+    <link rel="stylesheet" href="{% static 'css/jquery.dataTables.min.css' %}">
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/buttons.dataTables.min.css' %}">
+    <script src="{% static 'js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'js/buttons.print.min.js' %}"></script>
+   <title>{% block title %}{% endblock %}</title>
+   <style>
+      html, body {
+         height: 100%;
+         background-color: #ffffff;
+         font-family: Tahoma, sans-serif;
+         margin: 0;
+         padding: 0;
+         overflow-x: hidden;
+      }
+      .container-fluid {
+         padding: 0 15px;
+         max-width: 100%;
+      }
+      .bs-sliderbar {
+         background-color: #f8f9fa;
+         font-family: 'Roboto Condensed', sans-serif;
+         font-size: 1rem;
+         padding: 3px;
+         border-right: 1px solid #ccc;
+      }
+      .bs-sliderbar ul {
+         list-style: none;
+         padding: 0;
+         margin: 0;
+      }
+      .bs-sliderbar ul li {
+         margin: 10px 0;
+         position: relative;
+      }
+      .bs-sliderbar ul li > a {
+         display: flex;
+         align-items: center;
+         text-decoration: none;
+         color: #333;
+         font-weight: 500;
+         padding: 5px;
+         border-radius: 4px;
+         transition: background 0.3s ease;
+      }
+      .bs-sliderbar ul li > a:hover {
+         background-color: #e9ecef;
+         color: #007bff;
+      }
+      .bs-sliderbar ul li i {
+         margin-right: 10px;
+      }
+      /* Dropdown menu */
+      .bs-sliderbar li ul {
+         display: none;
+         position: relative;
+         padding-left: 10px;
+      }
+      .bs-sliderbar li ul li {
+         width: 300px;
+      }
+      .bs-sliderbar li ul li a {
+         display: block;
+         color: #333;
+         text-decoration: none;
+         padding: 5px;
+         font-size: 0.7rem;
+         text-indent: 12px;
+      }
+      .bs-sliderbar li ul li a:hover {
+         background-color: #e9ecef;
+         color: #007bff;
+      }
+      .bs-sliderbar li.active > ul {
+         display: block;
+      }
+      .container-fluid {
+         padding-top: 5px;
+      }
+      footer {
+         position: fixed;
+         bottom: 0;
+         left: 0;
+         width: 100%;
+         background-color: #f8f9fa;
+         padding: 10px 0;
+         text-align: center;
+         border-top: 1px solid #ddd;
+         font-size: 0.7rem;
+      }
+      footer a {
+         color: #007bff;
+         text-decoration: none;
+      }
+      footer a:hover {
+         text-decoration: underline;
+      }
+      /* Media Queries */
+      @media (max-width: 768px) {
+         .bs-sliderbar {
+            font-size: 0.7rem;
+         }
+         .bs-sliderbar ul li > a {
+            font-size: 0.7rem;
+         }
+         .container-fluid {
+            padding: 0 10px;
+         }
+      }
+   </style>
+</head>
+<body>
+   <div class="container-fluid">
+      <div class="row">
+         <!-- Sidebar -->
+         <div class="col-sm-2">
+            <center>
+               <a href="/home" style="display: flex; align-items: center; text-decoration: none;">
+                  <img src="{% static 'images/logo-icon.png' %}" class="img-fluid" style="width: 40px; margin-right: 10px;padding-top: 20px;">
+                  <span style="font-weight: bold; font-family:'Roboto Condensed', sans-serif; font-size: 1.2rem; color: #333;padding-top: 10px;">
+                      PHÒNG TÀI CHÍNH 108
+                  </span>
+              </a>              
+            </center>
+            <br>
+            <div class="bs-sliderbar">
+               <ul>
+                  <li>
+                    <a href="#"><i class="fa fa-money" aria-hidden="true"></i>Báo cáo đối soát<span class="fa fa-chevron-down" style="margin-left:auto;"></span></a>
+                    <ul>
+                        <li><a href="/home">Tổng hợp đối soát</a></li>
+                        <li><a href="/home/detail-reconciliation">Chi tiết đối soát theo thu ngân</a></li>
+                        <li><a href="/home/detail-exemption">Báo cáo chi tiết miễn giảm</a></li>
+                        <li><a href="/home/detail-otherpaid">Báo cáo chi tiết các khoản chi khác</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                     <a href="#"><i class="fa fa-money" aria-hidden="true"></i>Báo cáo công nợ phải thu<span class="fa fa-chevron-down" style="margin-left:auto;"></span></a>
+                     <ul>
+                         <li><a href="/home/account-receivables">Báo cáo công nợ phải thu theo đối tượng</a></li>
+                     </ul>
+                  </li>
+                  <li>
+                    <a href="#"><i class="fa fa-money" aria-hidden="true"></i>Báo cáo doanh thu<span class="fa fa-chevron-down" style="margin-left:auto;"></span></a>
+                     <ul>
+                        <li><a href="/home/revenue-summary">Tổng hợp doanh thu khám chữa bệnh</a></li>
+                        <li><a href="/home/exam-revenue-summary">Tổng hợp doanh thu KCB với tổ chức</a></li>
+                        <li><a href="/home/exam-revenue-by-patient-summary">Tổng hợp doanh thu KCB với tổ chức chi tiết người bệnh</a></li>
+                        <li><a href="/home/revenue-reconciliation">Đối soát dữ liệu doanh thu</a></li>
+                        <li><a href="/home/revenue-by-dept-order-summary">Tổng hợp doanh thu theo khoa chỉ định</a></li>
+                        <li><a href="/home/revenue-by-dept-order-reconcile">Đối soát doanh thu theo khoa chỉ định</a></li>
+                        <li><a href="/home/detail-revenue-groupby-service">Chi tiết doanh thu theo nhóm dịch vụ và khoa thực hiện</a></li>
+                        <li><a href="/home/drug-retail-revenue">Báo cáo doanh thu đơn thuốc bán lẻ</a></li>
+                        <li><a href="/home/functional-food-revenue">Báo cáo doanh thu thực phẩm chức năng nội trú</a></li>
+                     </ul>
+                  </li>
+                  <li>
+                    <a href="#"><i class="fa fa-money" aria-hidden="true"></i>Báo cáo giảm trừ doanh thu<span class="fa fa-chevron-down" style="margin-left:auto;"></span></a>
+                     <ul>
+                        <li><a href="/home/deduction-summary">Tổng hợp giảm trừ doanh thu</a></li>
+                        <li><a href="/home/deduction-by-dept-order-summary">Tổng hợp giảm trừ theo khoa chỉ định</a></li>
+                        <li><a href="/home/deduction-by-dept-order-reconcile">Đối soát giảm trừ theo khoa chỉ định</a></li>
+                        <li><a href="/home/detail-deduction-groupby-service">Chi tiết giảm trừ doanh thu theo nhóm dịch vụ</a></li>
+                        <li><a href="/home/drug-retail-deduction">Báo cáo giảm trừ doanh thu đơn thuốc bán lẻ</a></li>
+                     </ul>
+                  </li>
+                  <li>
+                     <a href="#"><i class="fa fa-money" aria-hidden="true"></i>Báo cáo chi phí KCB trực tiếp<span class="fa fa-chevron-down" style="margin-left:auto;"></span></a>
+                      <ul>
+                         <li><a href="/home/cost-in-package">Báo cáo chi phí trong gói</a></li>
+                         <li><a href="/home/detail-deduction-groupby-service">Báo cáo chi phí</a></li>
+                      </ul>
+                   </li>
+                   <li>
+                     <a href="#"><i class="fa fa-money" aria-hidden="true"></i>Báo cáo hàng tồn kho<span class="fa fa-chevron-down" style="margin-left:auto;"></span></a>
+                      <ul>
+                         <li><a href="/home/detail-inv-import">Báo cáo chi tiết nhập mua</a></li>
+                         <li><a href="/home/detail-inv-export">Báo cáo chi tiết xuất kho</a></li>
+                         <li><a href="/home/detail-inv-export-PDT">Báo cáo chi tiết xuất kho Phiếu dự trù</a></li>
+                      </ul>
+                   </li>
+                  <li>
+                     <a href="{% url 'user_info' %}">
+                         <i class="fa fa-user-circle" aria-hidden="true"></i> Thông tin cá nhân
+                     </a>
+                 </li>
+                 <li>
+                     <a href="{% url 'logout' %}">
+                         <i class="fa fa-sign-out-alt" aria-hidden="true"></i> Đăng xuất
+                     </a>
+                 </li>
+               </ul>
+            </div>
+         </div>
+         <!-- Main Content -->
+         <div class="col-sm-10" style="position: fixed; top: 0; right: 0; height: 96vh; overflow-y: auto;">
+            <div>
+            <!-- Logo làm nền -->
+               <img src="{% static 'images/background-2.jpg' %}" 
+               alt="Logo ẩn nền" 
+               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+               object-fit: cover; opacity: 0.7;">
+            </div>
+            <!-- Nội dung chính -->
+            <div style="position: relative; z-index: 1;">
+               {% block content %}
+               {% endblock %}
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+      </div>
+   </div>
+   <footer>
+      <div class="container-fluid">
+         <a href="https://benhvien108.vn/home.htm" style="color: #6e6d6d;">
+            <strong>Phòng Tài chính - Bệnh viện TWQĐ 108</strong>
+         </a>
+      </div>
+   </footer>
+   <script>
+      $(document).ready(function () {
+          // Khi click vào menu cấp trên
+          $('.bs-sliderbar ul > li > a').on('click', function (e) {
+              const parentLi = $(this).parent(); // Lấy phần tử li cha
+              const hasDropdown = parentLi.find('ul').length > 0;
+  
+              if (hasDropdown) {
+                  e.preventDefault(); // Chỉ ngăn chặn nếu có menu con
+                  if (!parentLi.hasClass('active')) {
+                     $('.bs-sliderbar ul > li').removeClass('active'); // Đóng tất cả menu
+                  }
+                  parentLi.toggleClass('active');
+              }
+            })
+         }
+      );
+  </script>    
+</body>
+</html>

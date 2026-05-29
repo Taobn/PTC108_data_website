@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập | Phòng Tài chính - Bệnh viện TWQĐ 108</title>
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="{% static 'fonts/font-awesome.min.css' %}" rel="stylesheet">
+    <!-- Custom Style -->
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%; /* Bảo đảm chiều cao trang luôn phủ kín màn hình */
+            overflow: hidden; /* Ngăn cuộn nếu nền tràn */
+        }
+        body {
+            background-image: url("{% static 'images/background-108.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat; /* Ngăn ảnh nền lặp lại */
+            font-family: 'Roboto', sans-serif;
+            display: flex; /* Đặt body thành flex container */
+            justify-content: center; /* Canh giữa nội dung theo chiều ngang */
+            align-items: center; /* Canh giữa nội dung theo chiều dọc */
+        }
+        .login-container {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        width: 500px;
+        max-width: 90%; /* Đảm bảo form không vượt quá màn hình nhỏ */
+        }
+        .login-container img {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+        .login-container h1 {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #003366;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .login-container button:hover {
+            background-color: #00509e;
+        }
+        .footer-container {
+            text-align: center;
+            color: white;
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <center>
+            <img src="{% static 'images/logo_benhvien_108.png' %}" alt="Logo Bệnh viện TWQĐ 108">
+            <h1>Đăng nhập</h1>
+            {% if messages %}
+                {% for message in messages %}
+                    <p style="color: red;">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <input placeholder="Tên đăng nhập" type="text" id="username" name="username" required>
+                <input placeholder="Mật khẩu" type="password" id="password" name="password" required>
+                <button type="submit">Đăng nhập</button>
+            </form>
+        </center>
+    </div>
+    <footer>
+        <div class="footer-container">
+            <p>Copyright ©2023. Bệnh viện Trung ương Quân đội 108.</p>
+        </div>
+    </footer>
+</body>
+</html>

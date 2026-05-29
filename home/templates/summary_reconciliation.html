@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block title %}
+Báo cáo đối soát
+{% endblock %}
+
+{% block content %}
+<center>
+    <a href="/home" style="text-decoration: none;">
+    <h2 style="font-family: 'Roboto Condensed', sans-serif; font-weight: bold; color: #fafafa;padding-top: 20px;"
+    >Báo cáo đối soát hạch toán tự động</h2>
+    </a>
+</center>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: auto;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+        }
+        th {
+            background-color: #f4f4f4;
+            text-align: center !important;
+            position: sticky;
+            z-index: 10; /* Đảm bảo tiêu đề luôn trên cùng */
+        }
+        /* Cố định các hàng tiêu đề */
+        thead tr:nth-child(1) th {
+            top: 0;
+            height: 20px; /* Đặt chiều cao chính xác */
+        }
+        thead tr:nth-child(2) th {
+            top: 20px; /* Bằng chiều cao hàng đầu tiên */
+            height: 20px; /* Đặt chiều cao cố định */
+        }
+        thead tr:nth-child(3) th {
+            top: 40px; /* Tổng chiều cao 2 hàng đầu */
+            height: 40px; /* Đặt chiều cao cố định */
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        td:first-child, td:nth-child(2) {
+            text-align: left;
+        }
+        th:nth-child(1), td:nth-child(1) {
+            min-width: 170px; /* Thu ngân */
+        }
+
+        th:nth-child(2), td:nth-child(2) {
+            min-width: 50px;  /* Hình thức */
+        }
+
+        th:nth-child(n+3), td:nth-child(n+3) {
+            width: auto;  /* Các cột số còn lại */
+            min-width: 50px;
+            text-align: right;
+        }
+
+        th:nth-child(n+24), td:nth-child(n+24) {
+            min-width: 70px;
+            text-align: center
+        }
+    
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        .filter-form input {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        .filter-form button {
+            padding: 5px 10px;
+        }
+        .table-container {
+            max-height: 675px; /* Chiều cao tối đa bảng */
+            overflow-y: scroll; /* Cuộn theo chiều dọc */
+            position: relative;
+        }
+        tfoot tr {
+            position: sticky; /* Cố định hàng tổng cộng */
+            bottom: 0; /* Cố định ở cuối bảng */
+            background-color: #f4f4f4; /* Màu nền giống tiêu đề */
+            font-weight: bold; /* Bôi đen */
+            z-index: 5; /* Đảm bảo hàng nằm trên */
+        }
+        tfoot td {
+            text-align: right !important; /* Căn phải các ô trong hàng tổng cộng */
+            padding: 8px;
+        }
+        .no-print { display: none; }
+        
+        footer {
+        background-color: rgba(255, 255, 255, 0.4); /* Màu trắng trong suốt */
+        padding: 10px;
+        text-align: center;
+        border-top: none; /* Loại bỏ đường viền nếu cần */
+        }
+    </style>
+</head>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const headerRows = document.querySelectorAll("thead tr");
+        let accumulatedHeight = 0;
+
+        headerRows.forEach((row, index) => {
+            const ths = row.querySelectorAll("th");
+            ths.forEach((th) => {
+                th.style.top = `${accumulatedHeight}px`; // Đặt khoảng cách top
+                th.style.position = "sticky";
+                th.style.zIndex = "10";
+            });
+            accumulatedHeight += row.offsetHeight; // Cộng dồn chiều cao của hàng
+        });
+    });
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Tính tổng cột
+    const calculateColumnSums = () => {
+        const rows = document.querySelectorAll("tbody tr");
+        const sumCells = document.querySelectorAll("tfoot .sum-col");
+
+        // Đặt giá trị khởi tạo 0 cho mỗi cột cần tính tổng
+        const columnSums = Array.from(sumCells).map(() => 0);
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+            cells.forEach((cell, index) => {
+                if (index >= 2 && cell.classList.contains("format-number")) {
+                    const value = parseFloat(cell.textContent.replace(/[^0-9.-]/g, "")) || 0;
+                    columnSums[index - 2] += value; // Trừ đi phần bù cột không cần tính
+                }
+            });
+        });
+
+        // Cập nhật tổng vào hàng tổng cộng
+        sumCells.forEach((cell, index) => {
+            cell.textContent = new Intl.NumberFormat("de-DE", {
+                style: "decimal",
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(columnSums[index]);
+        });
+    };
+
+    calculateColumnSums(); // Gọi hàm tính tổng khi tải trang
+});
+</script>
+<body>
+    <h1></h1>
+    <!-- Form lọc dữ liệu theo thời gian -->
+    <form method="POST" action="{% url 'summary_reconciliation_view' %}">
+        {% csrf_token %}
+        {% load humanize %}
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <label for="from_date" style="color: #f4f4f4;">From Date:</label>
+                <input type="date" name="from_date" id="from_date" class="form-control" value="{{ request.POST.from_date }}">
+            </div>
+            <div class="col-md-2">
+                <label for="to_date" style="color: #f4f4f4;">To Date:</label>
+                <input type="date" name="to_date" id="to_date" class="form-control" value="{{ request.POST.to_date }}">
+            </div>
+            <div class="col-md-2">
+                <label for="payment_method" style="color: #f4f4f4;">Payment Method:</label>
+                <select name="payment_method" id="payment_method" class="form-control">
+                    <option value="">-- All Methods --</option>
+                    {% for method in payment_methods %}
+                        <option value="{{ method }}" {% if method == selected_method %}selected{% endif %}>{{ method }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="checked_status" style="color: #f4f4f4;">Check Status:</label>
+                <select name="checked_status" id="checked_status" class="form-control">
+                    <option value="">-- All Status --</option>
+                    {% for status in check_status %}
+                        <option value="{{ status }}" {% if status == selected_status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 align-self-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="printableArea" class="table-container">
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th rowspan="3">Thu ngân</th>
+                    <th rowspan="3">Hình thức</th>
+                    <th colspan="10">Số tiền</th>
+                    <th colspan="10">Doanh thu</th>
+                    <th rowspan="3">Giảm trừ doanh thu</th>
+                    <th colspan="4">Kiểm tra</th>
+                </tr>
+                <tr>
+                    <th colspan="4">Thu</th>
+                    <th colspan="6">Chi</th>
+                    <th colspan="3">Thu theo hóa đơn</th>
+                    <th colspan="3">Hoàn ứng viện phí</th>
+                    <th colspan="2">Điều chỉnh viện phí</th>
+                    <th rowspan="2">Cộng</th>
+                    <th rowspan="2">Bù trừ tạm ứng</th>
+                    <th rowspan="2">(1)=(11)</th>
+                    <th rowspan="2">(5)=(21)</th>
+                    <th rowspan="2">(6)-(2)=(20)-(4)</th>
+                    <th rowspan="2">Kết quả</th>
+                </tr>
+                <tr>
+                    <th>Hóa đơn</th>
+                    <th>Hoàn ứng viện phí</th>
+                    <th>Tạm ứng</th>
+                    <th>Cộng</th>
+                    <th>Hóa đơn</th>
+                    <th>Hoàn ứng viện phí</th>
+                    <th>Trả lại tạm ứng</th>
+                    <th>Chi khác</th>
+                    <th>Điều chỉnh</th>
+                    <th>Cộng</th>
+                    <th>Người bệnh</th>
+                    <th>Nguồn khác</th>
+                    <th>Miễn giảm</th>
+                    <th>Người bệnh</th>
+                    <th>Nguồn khác</th>
+                    <th>Miễn giảm</th>
+                    <th>Người bệnh</th>
+                    <th>Nguồn khác</th>
+                </tr>
+                <tr>
+                    <th>(A)</th>
+                    <th>(B)</th>
+                    <th>(1)</th>
+                    <th>(2)</th>
+                    <th>(3)</th>
+                    <th>(4)</th>
+                    <th>(5)</th>
+                    <th>(6)</th>
+                    <th>(7)</th>
+                    <th>(8)</th>
+                    <th>(9)</th>
+                    <th>(10)</th>
+                    <th>(11)</th>
+                    <th>(12)</th>
+                    <th>(13)</th>
+                    <th>(14)</th>
+                    <th>(15)</th>
+                    <th>(16)</th>
+                    <th>(17)</th>
+                    <th>(18)</th>
+                    <th>(19)</th>
+                    <th>(20)</th>
+                    <th>(21)</th>
+                    <th>(C)</th>
+                    <th>(D)</th>
+                    <th>(E)</th>
+                    <th>(F)</th>
+                </tr>    
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row.thungan }}</td>
+                    <td>{{ row.hfe_payment_method }}</td>
+                    <td class="format-number">{{ row.invoice_receipt_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.invoice_advance_payment_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.deposit_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.invoice_receipt_amount|add:row.invoice_advance_payment_amount|add:row.deposit_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.refund_deduction_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.refund_after_payment_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.return_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.other_paid_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.adjust_paid_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.refund_deduction_amount|add:row.refund_after_payment_amount|add:row.return_amount|add:row.other_paid_amount|add:row.adjust_paid_amount|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_by_receipt_patpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_by_receipt_otherpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_exemption_by_receipt_patpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_by_refund_patpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_by_refund_otherpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_exemption_by_refund_patpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_by_adjust_patpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_by_adjust_otherpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.revenue_by_receipt_patpaid|add:row.revenue_by_receipt_otherpaid|add:row.revenue_exemption_by_receipt_patpaid|add:row.revenue_by_refund_patpaid|add:row.revenue_by_refund_otherpaid|add:row.revenue_exemption_by_refund_patpaid|add:row.revenue_by_adjust_patpaid|add:row.revenue_by_adjust_otherpaid|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.advance_payment|default:0|floatformat:0|intcomma }}</td>
+                    <td class="format-number">{{ row.deduction|default:0|floatformat:0|intcomma }}</td>
+                    <td>{{row.comparison_criteria_1}}</td>
+                    <td>{{row.comparison_criteria_2}}</td>
+                    <td>{{row.comparison_criteria_3}}</td>
+                    <td>{{row.comparison_criteria_4}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="text-align: center !important;">Tổng cộng</td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td class="sum-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tfoot>                     
+        </table>
+        <script>
+            $(document).ready(function () {
+                var table = $('#reportTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    lengthMenu: [10, 50, 100, 500, 1000],
+                    pageLength: 10,
+                    order: [[1, 'asc']],
+                    language: {
+                        search: "Tìm kiếm:",
+                        lengthMenu: "Hiển thị _MENU_ dòng mỗi trang",
+                        info: "Hiển thị từ _START_ đến _END_ trong tổng số _TOTAL_ dòng",
+                        paginate: {
+                            first: "Đầu tiên",
+                            last: "Cuối cùng",
+                            next: "Tiếp theo",
+                            previous: "Trước đó"
+                        }
+                    },
+                    dom: 'Blfrtip',
+                    buttons: [  'copy']
+                });
+
+            function calculateVisibleColumnSums() {
+                let columnSums = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Mảng chứa tổng của từng cột
+
+            // Lặp qua từng hàng đang hiển thị (sau khi tìm kiếm)
+            table.rows({ filter: 'applied' }).every(function () {
+                let row = $(this.node()); // Lấy hàng đang xét
+                row.find("td.format-number").each(function (index) {
+                    let value = parseFloat($(this).text().replace(/[^0-9.-]/g, "")) || 0;
+                    columnSums[index] += value;
+                });
+            });
+
+            // Cập nhật lại giá trị vào hàng "Tổng cộng"
+            $("tfoot .sum-col").each(function (index) {
+                $(this).text(new Intl.NumberFormat("de-DE").format(columnSums[index]));
+                });
+            }
+
+            // Gọi lại hàm tính tổng mỗi khi người dùng lọc hoặc chuyển trang
+            table.on('search.dt draw.dt', function () {
+                calculateVisibleColumnSums();
+            });
+
+            calculateVisibleColumnSums(); // Chạy ngay khi trang tải xong
+            });
+        </script>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+           const fromDate = document.getElementById("from_date");
+           const toDate = document.getElementById("to_date");
+       
+           fromDate.addEventListener("change", () => {
+               document.querySelector("input[name='from_date']").value = fromDate.value;
+           });
+       
+           toDate.addEventListener("change", () => {
+               document.querySelector("input[name='to_date']").value = toDate.value;
+           });
+       });
+     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Hàm tính tổng (đã chỉnh sửa)
+            const calculateColumnSums = () => {
+                // ... Nội dung đã viết ở trên
+            };
+    
+            calculateColumnSums();
+        });
+    </script>
+    <script>
+        // Hàm xuất dữ liệu từ bảng HTML ra Excel
+        function exportToExcel() {
+            const table = document.getElementById("reportTable"); // Lấy bảng có id 'reportTable'
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Báo cáo đối soát" }); // Chuyển bảng HTML thành Workbook
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+
+            // Chuyển đổi dữ liệu nhị phân thành blob và tạo một link tải xuống
+            const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "bao_cao_doi_soat.xlsx"; // Tên file tải xuống
+            a.click();
+            URL.revokeObjectURL(url); // Hủy URL sau khi tải xuống
+        }
+
+        // Chuyển đổi chuỗi nhị phân thành kiểu ArrayBuffer
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+    </script>
+</body>
+<footer>
+    <div style="text-align: right; margin-bottom: 30px;">
+        <form method="GET" action="{% url 'summary_reconciliation_pdf' %}" target="_blank" style="display: inline-block;">
+            <input type="hidden" name="from_date" value="{{ request.POST.from_date }}">
+            <input type="hidden" name="to_date" value="{{ request.POST.to_date }}">
+            <input type="hidden" name="payment_method" value="{{ selected_method }}">
+            <input type="hidden" name="checked_status" value="{{ selected_status }}">
+            <button type="submit" class="btn btn-secondary">Print</button>
+        </form>
+        <button onclick="exportToExcel()" class="btn btn-success" style="display: inline-block; margin-right: 10px;">Excel</button>
+    </div>                    
+</footer>
+</html>
+{% endblock %}
